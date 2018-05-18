@@ -5,14 +5,10 @@ class OneVariableApproximator:
         # the coefficients of polynomial
         self.bettas = [0.0] * self.degree
         # learning rate
-        self.alfas = [0.1 / (x+1) for x in range(self.degree)]
+        self.alfas = 0.0001
 
-    def shrank_learning_rate(self, index=-1, factor=0.9):
-        if index == -1:
-            for i in range(self.degree):
-                self.alfas *= factor
-        else:
-            self.alfas[index] *= factor
+    def shrank_learning_rate(self, factor=0.9):
+        self.alfas *= factor
 
     def approximation(self, single_input):
         x = single_input
@@ -36,7 +32,7 @@ class OneVariableApproximator:
             y_hat = self.approximation(x)
             s = (y_hat - y)
             for i in range(self.degree):
-                grad[i] += self.alfas[i] * s * x**i
+                grad[i] += self.alfas * s * x**i
             # grad[0] += learning_rate[0] * s * 1
             # grad[1] += learning_rate[1] * s * x
             # grad[2] += learning_rate[2] * s * x ** 2
@@ -45,7 +41,15 @@ class OneVariableApproximator:
 
     def one_gradient_descent_step(self):
         grad = self.gradient()
+        before = self.objective()
+        old_bettas = self.bettas
         for index in range(self.degree):
             self.bettas[index] -= grad[index]
+        after = self.objective()
+        if before < after:
+            self.alfas *= 0.45
+            self.bettas = old_bettas
+        else:
+            self.alfas *= 1.05
 
 

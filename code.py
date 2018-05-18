@@ -3,6 +3,8 @@ import random
 from draw import Drawer
 from approximator import OneVariableApproximator
 
+num_of_samples = 100
+
 
 def get_samples():
     global num_of_samples
@@ -13,6 +15,8 @@ def get_samples():
         y_sample = math.cos(x_sample)
         if random.uniform(0.0, 1.0) > 0.45:
             s.append([x_sample, y_sample])
+    s.append([1.55 * math.pi, math.cos(1.55 * math.pi)])
+    s.append([1.45 * math.pi, math.cos(1.45 * math.pi)])
     return s
 
 
@@ -32,11 +36,10 @@ d = Drawer()
 d.add_points(points=samples)
 
 approximator = OneVariableApproximator(samples, 4)
-approximator.shrank_learning_rate(index=3, factor=0.1)
 
 approximator.one_gradient_descent_step()
 progress = [approximator.objective()]
-for i in range(1000):
+for i in range(10000):
     approximator.one_gradient_descent_step()
     progress.append(approximator.objective())
     if progress[-2] < progress[-1]:
