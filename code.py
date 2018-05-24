@@ -36,7 +36,7 @@ samples = get_samples()
 main_plot = Drawer()
 main_plot.add_points(points=samples)
 
-approximator = OneVariableApproximator(samples, 4)
+approximator = OneVariableApproximator(samples, 5)
 
 progress = [approximator.objective()]
 for i in range(10000):
