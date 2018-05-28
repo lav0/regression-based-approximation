@@ -57,35 +57,61 @@ class OneVariableApproximator:
 class TwoVariableApproximator:
     def __init__(self, training_data, degree):
         self.training_data = training_data
-        self.degree = degree
+        self.degree = degree + 1
         # the coefficients of polynomial
-        self.bettas = [[0.0] * (degree+1)] * (degree+1)
-        self.learning_rate = 0.001
+        self.bettas = self.get_zero_matrix()
+        self.learning_rate = 1 #0.001
+
+    def get_zero_matrix(self):
+        return [[0.0] * self.degree for _ in range(self.degree)]
 
     def approximation(self, double_input):
         x, y = double_input
         result = 0
-        for k in range(self.degree + 1):
+        for k in range(self.degree):
             for i in range(k+1):
                 b = self.bettas[k][i]
                 result += b * x**(k-i) * y**i
         return result
 
     def objective(self):
-        n = len(self.training_data) + 1
+        n = len(self.training_data)
         sum_of_squares = 0.0
         for x1, x2, y in self.training_data:
             y_hat = self.approximation([x1, x2])
             sum_of_squares += (y_hat - y) ** 2
         return sum_of_squares / (2 * n)
 
+    def single_entry_example(self, entry):
+        x1, x2, y = entry
+        y_hat = self.approximation([x1, x2])
+        grad = self.get_zero_matrix()
+        for k in range(self.degree):
+            for i in range(k+1):
+                grad[k][i] = self.learning_rate * (y_hat - y) * (x1 ** (k - i)) * x2 ** i
+        return grad
+
     def gradient(self):
-        n = len(self.training_data) + 1
-        grad = [[0] * (self.degree+1)] * (self.degree+1)
-        for x1, x2, y in self.training_data:
-            y_hat = self.approximation([x1, x2])
-            s = y_hat - y
-            for k in range(self.degree + 1):
+        n = len(self.training_data)
+        grad = self.get_zero_matrix()
+        for entry in self.training_data:
+            for k in range(self.degree):
                 for i in range(k+1):
-                    grad[k][i] = self.learning_rate * s * x1**(k-i) * x2**i
-        return [[item*(1.0/n) for item in row] for row in grad]
+                    one_entry = self.single_entry_example(entry)
+                    grad[k][i] += one_entry[k][i]
+
+        return [[(1.0/n) * item for item in row] for row in grad]
+
+    def one_gradient_descent_step(self):
+        grad = self.gradient()
+        before = self.objective()
+        old_bettas = self.bettas
+        for k in range(self.degree):
+            for i in range(k+1):
+                self.bettas[k][i] -= grad[k][i]
+        after = self.objective()
+        if before < after:
+            self.learning_rate *= 0.45
+            self.bettas = old_bettas
+        else:
+            self.learning_rate *= 1.05

@@ -47,7 +47,7 @@ obj_function_plot = Drawer(xlimits=(0, len(progress)), ylimits=(0, 1.2 * progres
 for i, p in zip(range(len(progress)), progress):
     pair = [i, p]
     print(pair)
-    obj_function_plot.add_points([pair])
+    obj_function_plot.add_pkoints([pair])
 
 
 main_plot.add_points(points=get_approximations(approximator), c='b')
