@@ -60,7 +60,7 @@ class TwoVariableApproximator:
         self.degree = degree + 1
         # the coefficients of polynomial
         self.bettas = self.get_zero_matrix()
-        self.learning_rate = 1 #0.001
+        self.learning_rate = 0.01
 
     def get_zero_matrix(self):
         return [[0.0] * self.degree for _ in range(self.degree)]
@@ -82,25 +82,17 @@ class TwoVariableApproximator:
             sum_of_squares += (y_hat - y) ** 2
         return sum_of_squares / (2 * n)
 
-    def single_entry_example(self, entry):
-        x1, x2, y = entry
-        y_hat = self.approximation([x1, x2])
-        grad = self.get_zero_matrix()
-        for k in range(self.degree):
-            for i in range(k+1):
-                grad[k][i] = self.learning_rate * (y_hat - y) * (x1 ** (k - i)) * x2 ** i
-        return grad
-
     def gradient(self):
         n = len(self.training_data)
         grad = self.get_zero_matrix()
         for entry in self.training_data:
+            x1, x2, y = entry
+            y_hat = self.approximation([x1, x2])
             for k in range(self.degree):
                 for i in range(k+1):
-                    one_entry = self.single_entry_example(entry)
-                    grad[k][i] += one_entry[k][i]
+                    grad[k][i] += (y_hat - y) * (x1 ** (k - i)) * x2 ** i
 
-        return [[(1.0/n) * item for item in row] for row in grad]
+        return [[(self.learning_rate/n) * item for item in row] for row in grad]
 
     def one_gradient_descent_step(self):
         grad = self.gradient()
